@@ -1,0 +1,5 @@
+{
+  "name": "CSMA/CA Protocol Simulator",
+  "description": "A comprehensive visualization tool for the CSMA/CA wireless protocol, featuring real-time timeline rendering, collision simulation, and detailed statistical analysis.",
+  "requestFramePermissions": []
+}
