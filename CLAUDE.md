@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-这是一个 **CSMA/CA（Carrier Sense Multiple Access with Collision Avoidance）无线协议仿真器**，用于可视化和分析 802.15.4-style 协议的行为。该应用是一个纯前端 React + TypeScript + Vite 应用，使用 Tailwind CSS（通过内联类）构建。
+This is a **CSMA/CA (Carrier Sense Multiple Access with Collision Avoidance) wireless protocol simulator** for visualizing and analyzing 802.15.4-style protocol behavior. The application is a pure frontend React + TypeScript + Vite app, built with Tailwind CSS (via inline classes).
 
-**核心功能**：
-- 离散事件仿真引擎（Discrete-event simulation）
-- 实时时间线可视化（Timeline rendering）
-- 碰撞检测与统计分析
-- 多节点并发传输模拟
+**Core Features**:
+- Discrete-event simulation engine
+- Real-time timeline visualization
+- Collision detection and statistical analysis
+- Multi-node concurrent transmission simulation
 
 ## Development Commands
 
@@ -44,57 +44,57 @@ ConfigPanel                    Timeline + Stats + Logs
 
 #### 1. **Simulation Engine** (`services/simulator.ts`)
 
-这是整个项目的核心。包含：
+This is the core of the entire project. It contains:
 
-- **Node Class**: 状态机实现（FSM），每个节点独立执行 CSMA/CA 协议
-- **runSimulation()**: 主仿真循环 - **critically important**
+- **Node Class**: Finite State Machine (FSM) implementation, each node independently executes the CSMA/CA protocol
+- **runSimulation()**: Main simulation loop - **critically important**
 
 **Simulation Loop Structure** (critical for understanding):
 ```typescript
 for (t = 0; t < simDuration; t++) {
-  Phase 1: Physical Channel Check (谁在传输?)
-  Phase 2: Node Perception (VCS/NAV更新)
-  Phase 3: State Machine Update (节点状态转换)
-  Phase 4: Timeline Recording (可视化数据生成)
+  Phase 1: Physical Channel Check (Who is transmitting?)
+  Phase 2: Node Perception (VCS/NAV updates)
+  Phase 3: State Machine Update (Node state transitions)
+  Phase 4: Timeline Recording (Visualization data generation)
 }
 ```
 
-**节点状态机 (NodeType enum)**:
+**Node State Machine (NodeType enum)**:
 ```
 IDLE → SENSING → BACKOFF → TX_PREAMBLE → TX_FC → TX_DATA
   → WAIT_RIFS → RX_ACK → (SUCCESS or COLLISION/RETRY)
 ```
 
-**关键协议参数**:
-- `pe`: Priority/Preamble slots (固定延迟)
-- `minBe/maxBe`: Backoff exponent range (指数退避)
-- `maxNb`: Max retries (最大重试次数)
+**Key Protocol Parameters**:
+- `pe`: Priority/Preamble slots (fixed delay)
+- `minBe/maxBe`: Backoff exponent range (exponential backoff)
+- `maxNb`: Max retries (maximum retry attempts)
 - `collisionPenalty`: VCS duration when hearing preamble
 
 **VCS (Virtual Carrier Sense) Logic** (`simulator.ts:133-151`):
-- 听到 Preamble → 设置 `collisionPenalty` ticks 的 NAV
-- 解码 FC (无碰撞) → 精确计算剩余传输时间
-- 仅当 `physicalBusy=false AND vcs=0` 才认为信道空闲
+- Hearing Preamble → Set NAV for `collisionPenalty` ticks
+- Decoding FC (no collision) → Calculate precise remaining transmission time
+- Channel is considered idle only when `physicalBusy=false AND vcs=0`
 
 #### 2. **Type System** (`types.ts`)
 
-**完整的类型定义**，理解这些是理解整个系统的钥匙：
+**Complete type definitions** - understanding these is the key to understanding the entire system:
 
-- `SimConfig`: 全局配置（协议参数 + 场景参数）
-- `TimelineData`: `{ [nodeId]: TimelineCell[] }` - 每个 tick 的节点状态快照
-- `SimStats`: 统计数据（成功/失败/碰撞/信道利用率）
+- `SimConfig`: Global configuration (protocol parameters + scenario parameters)
+- `TimelineData`: `{ [nodeId]: TimelineCell[] }` - Node state snapshot for each tick
+- `SimStats`: Statistics (success/failure/collision/channel utilization)
 
-**重要**: `TimelineCell.info` 用于显示 Backoff 计数器，这是调试协议行为的关键。
+**Important**: `TimelineCell.info` is used to display the Backoff counter, which is crucial for debugging protocol behavior.
 
 #### 3. **UI Components** (`components/`)
 
-- **ConfigurationPanel**: 左侧参数配置面板（双列布局 Global/Protocol/Scenario）
-- **Timeline**: 核心可视化组件
-  - 虚拟滚动优化（只渲染可见区域 + BUFFER_TICKS）
-  - 支持缩放（cellWidth 10-40px）
-  - Sticky 列显示节点 ID
-- **StatsPanel**: 统计看板（成功率、碰撞率、信道利用率）
-- **LogPanel**: 事件日志（可点击跳转到对应 tick）
+- **ConfigurationPanel**: Left-side parameter configuration panel (two-column layout: Global/Protocol/Scenario)
+- **Timeline**: Core visualization component
+  - Virtual scrolling optimization (only renders visible area + BUFFER_TICKS)
+  - Supports zooming (cellWidth 10-40px)
+  - Sticky column displays node IDs
+- **StatsPanel**: Statistics dashboard (success rate, collision rate, channel utilization)
+- **LogPanel**: Event log (clickable to jump to corresponding tick)
 
 ### Critical Implementation Details
 
@@ -107,11 +107,11 @@ const transmitters = nodes.filter(n =>
 const collisionOccurring = transmitters.length > 1;
 ```
 
-**碰撞的判定是 physical overlap**：两个或更多节点同时处于传输状态。
+**Collision is determined by physical overlap**: Two or more nodes are simultaneously in transmit state.
 
-- 碰撞时设置 `isCurrentTxDoomed = true`
-- ACK 阶段检查此标志决定成功/重试
-- 视觉上用 `COLLISION` 状态替换正常的 TX 状态
+- On collision, set `isCurrentTxDoomed = true`
+- ACK phase checks this flag to decide success/retry
+- Visually replaces normal TX state with `COLLISION` state
 
 #### Backoff Mechanism (`simulator.ts:36-39, 199-227`)
 
@@ -122,22 +122,22 @@ generateBackoff() {
 }
 ```
 
-**Critical**: Backoff counter 包含 `pe` 固定延迟，这是 802.15.4 的特性。
+**Critical**: Backoff counter includes the `pe` fixed delay, which is a feature of 802.15.4.
 
-**Backoff 暂停逻辑**:
-- 信道忙 → 状态切换到 `BACKOFF_PAUSED`（计数器冻结）
-- 信道恢复空闲 → 恢复 `BACKOFF`，继续倒数
+**Backoff Pause Logic**:
+- Channel busy → State switches to `BACKOFF_PAUSED` (counter freezes)
+- Channel becomes idle → Resume `BACKOFF`, continue countdown
 
 #### Timeline Rendering Optimization (`Timeline.tsx:50-100`)
 
-使用 **viewport culling** 和 **React.memo** 优化性能：
+Uses **viewport culling** and **React.memo** for performance optimization:
 
 ```typescript
 const visibleStartTick = Math.max(0, Math.floor(scrollLeft / cellWidth) - BUFFER_TICKS);
 const visibleEndTick = Math.min(simDuration, Math.ceil((scrollLeft + viewportWidth) / cellWidth) + BUFFER_TICKS);
 ```
 
-**只渲染可见窗口 ± 20 ticks** 的单元格。对于 10000+ ticks 的长仿真至关重要。
+**Only renders cells in visible window ± 20 ticks**. Critical for long simulations with 10000+ ticks.
 
 #### Success Rate Statistics (`simulator.ts:276-278`)
 
@@ -147,7 +147,7 @@ else if (n.nb === 1) stats.success2nd++;
 else stats.success3rd++; // nb >= 2
 ```
 
-**注意**: `success3rd` 实际上是 "第三次及以上尝试成功"，不仅仅是第三次。
+**Note**: `success3rd` actually means "success on third or later attempts", not just the third attempt.
 
 ## Common Development Tasks
 

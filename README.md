@@ -2,6 +2,8 @@
 
 A comprehensive visualization tool for the CSMA/CA wireless protocol, featuring real-time timeline rendering, collision simulation, and detailed statistical analysis.
 
+**[Online Demo](https://hcoa-iot.github.io/csma_simulator/)**
+
 ## Features
 
 - Discrete-event simulation engine for IEEE 802.15.4-style CSMA/CA protocol
